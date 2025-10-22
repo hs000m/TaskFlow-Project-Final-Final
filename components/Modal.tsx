@@ -74,7 +74,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
     >
       <div
         ref={modalRef}
-        className={`bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full ${sizeClasses[size]} flex flex-col max-h-[90vh]`}
+        className={`bg-white dark:bg-slate-850 rounded-lg shadow-xl w-full ${sizeClasses[size]} flex flex-col max-h-[90vh]`}
         onClick={(e) => e.stopPropagation()}
         tabIndex={-1}
       >

@@ -116,14 +116,14 @@ const ManagementModal: React.FC<ManagementModalProps> = ({ isOpen, onClose, comp
                     <h3 className="text-lg font-medium text-yellow-500 dark:text-yellow-400 border-b border-slate-200 dark:border-slate-700 pb-2">Pending Approvals</h3>
                     <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
                         {pendingEmployees.map(employee => (
-                            <div key={employee.id} className="flex justify-between items-center bg-slate-100 dark:bg-slate-700 p-2 rounded-md">
+                            <div key={employee.id} className="flex justify-between items-center bg-slate-100 dark:bg-slate-800 p-2 rounded-md">
                                 <div>
                                     <p className="text-slate-800 dark:text-gray-200">{employee.name}</p>
                                     <p className="text-xs text-slate-500 dark:text-slate-400">{companies.find(c => c.id === employee.companyId)?.name}</p>
                                 </div>
                                 <div className="flex items-center space-x-2">
-                                    <button onClick={() => onApproveEmployee(employee.id)} className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 p-1.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"><CheckIcon className="w-5 h-5"/></button>
-                                    <button onClick={() => handleDenyEmployeeClick(employee)} className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 p-1.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"><TrashIcon className="w-5 h-5"/></button>
+                                    <button onClick={() => onApproveEmployee(employee.id)} className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 p-1.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"><CheckIcon className="w-5 h-5"/></button>
+                                    <button onClick={() => handleDenyEmployeeClick(employee)} className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 p-1.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"><TrashIcon className="w-5 h-5"/></button>
                                 </div>
                             </div>
                         ))}
@@ -136,12 +136,12 @@ const ManagementModal: React.FC<ManagementModalProps> = ({ isOpen, onClose, comp
             <div className="space-y-4">
                 <h3 className="text-lg font-medium text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">Companies</h3>
                 <form onSubmit={handleAddCompany} className="flex gap-2">
-                <input type="text" value={newCompanyName} onChange={(e) => setNewCompanyName(e.target.value)} placeholder="New company name" className="flex-grow bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm py-2 px-3 text-slate-800 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                <input type="text" value={newCompanyName} onChange={(e) => setNewCompanyName(e.target.value)} placeholder="New company name" className="flex-grow bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm py-2 px-3 text-slate-800 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                 <button type="submit" className="px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-white dark:focus:ring-offset-slate-800 flex items-center"><PlusIcon className="w-5 h-5"/></button>
                 </form>
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                 {companies.length > 0 ? companies.map(company => (
-                    <div key={company.id} className="flex justify-between items-center bg-slate-100 dark:bg-slate-700 p-2 rounded-md">
+                    <div key={company.id} className="flex justify-between items-center bg-slate-100 dark:bg-slate-800 p-2 rounded-md">
                     {editing?.id === company.id ? (
                         <input
                             type="text"
@@ -149,7 +149,7 @@ const ManagementModal: React.FC<ManagementModalProps> = ({ isOpen, onClose, comp
                             onChange={(e) => setEditing({ ...editing, name: e.target.value })}
                             onKeyDown={(e) => e.key === 'Enter' && handleSaveCompany(company.id)}
                             autoFocus
-                            className="flex-grow bg-slate-200 dark:bg-slate-600 border border-indigo-500 rounded-md py-1 px-2 text-slate-800 dark:text-white sm:text-sm"
+                            className="flex-grow bg-slate-200 dark:bg-slate-700 border border-indigo-500 rounded-md py-1 px-2 text-slate-800 dark:text-white sm:text-sm"
                         />
                     ) : (
                         <span className="text-slate-800 dark:text-gray-200">{company.name}</span>
@@ -175,9 +175,9 @@ const ManagementModal: React.FC<ManagementModalProps> = ({ isOpen, onClose, comp
             <div className="space-y-4">
                 <h3 className="text-lg font-medium text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">Approved Employees</h3>
                 <form onSubmit={handleAddEmployee} className="space-y-2">
-                <input type="text" value={newEmployeeName} onChange={(e) => setNewEmployeeName(e.target.value)} placeholder="New employee name" required className="w-full bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm py-2 px-3 text-slate-800 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                <input type="text" value={newEmployeeName} onChange={(e) => setNewEmployeeName(e.target.value)} placeholder="New employee name" required className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm py-2 px-3 text-slate-800 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                 <div className="flex gap-2">
-                    <select value={newEmployeeCompanyId} onChange={(e) => setNewEmployeeCompanyId(e.target.value)} required className="flex-grow bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm py-2 px-3 text-slate-800 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <select value={newEmployeeCompanyId} onChange={(e) => setNewEmployeeCompanyId(e.target.value)} required className="flex-grow bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm py-2 px-3 text-slate-800 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     <option value="">Assign to company</option>
                     {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
@@ -186,7 +186,7 @@ const ManagementModal: React.FC<ManagementModalProps> = ({ isOpen, onClose, comp
                 </form>
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                     {approvedEmployees.length > 0 ? approvedEmployees.map(employee => (
-                        <div key={employee.id} className="flex justify-between items-center bg-slate-100 dark:bg-slate-700 p-2 rounded-md">
+                        <div key={employee.id} className="flex justify-between items-center bg-slate-100 dark:bg-slate-800 p-2 rounded-md">
                             {editing?.id === employee.id ? (
                                 <input
                                     type="text"
@@ -194,7 +194,7 @@ const ManagementModal: React.FC<ManagementModalProps> = ({ isOpen, onClose, comp
                                     onChange={(e) => setEditing({ ...editing, name: e.target.value })}
                                     onKeyDown={(e) => e.key === 'Enter' && handleSaveEmployee(employee.id)}
                                     autoFocus
-                                    className="flex-grow bg-slate-200 dark:bg-slate-600 border border-indigo-500 rounded-md py-1 px-2 text-slate-800 dark:text-white sm:text-sm"
+                                    className="flex-grow bg-slate-200 dark:bg-slate-700 border border-indigo-500 rounded-md py-1 px-2 text-slate-800 dark:text-white sm:text-sm"
                                 />
                             ) : (
                                 <div>

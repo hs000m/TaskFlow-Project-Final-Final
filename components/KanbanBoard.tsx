@@ -78,9 +78,10 @@ interface KanbanColumnProps {
   onDelete: (taskId: string) => void;
   onDragStart: (e: React.DragEvent<HTMLDivElement>, taskId: string) => void;
   onDrop: (e: React.DragEvent<HTMLDivElement>, status: TaskStatus) => void;
+  heightClass: string;
 }
 
-const KanbanColumn: React.FC<KanbanColumnProps> = ({ status, tasks, employees, companies, onEdit, onDelete, onDragStart, onDrop }) => {
+const KanbanColumn: React.FC<KanbanColumnProps> = ({ status, tasks, employees, companies, onEdit, onDelete, onDragStart, onDrop, heightClass }) => {
     const [isOver, setIsOver] = useState(false);
   
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -95,7 +96,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({ status, tasks, employees, c
   
     return (
       <div 
-        className={`bg-slate-100 dark:bg-slate-900/50 rounded-lg p-4 w-full md:w-96 flex-shrink-0 transition-colors duration-300 ${isOver ? 'bg-indigo-200/50 dark:bg-indigo-900/30' : ''}`}
+        className={`bg-slate-100 dark:bg-slate-850 rounded-lg p-4 w-full md:flex-1 transition-colors duration-300 ${isOver ? 'bg-indigo-200/50 dark:bg-indigo-900/30' : ''}`}
         onDrop={(e) => {onDrop(e, status); setIsOver(false);}}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -104,7 +105,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({ status, tasks, employees, c
           <span>{status}</span>
           <span className="text-sm font-normal bg-slate-300 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full px-2 py-0.5">{tasks.length}</span>
         </h3>
-        <div className="space-y-3 h-[calc(100vh-20rem)] overflow-y-auto pr-1">
+        <div className={`space-y-3 ${heightClass} overflow-y-auto pr-1`}>
           {tasks.length > 0 ? tasks.map(task => (
             <KanbanCard key={task.id} task={task} employees={employees} companies={companies} onEdit={onEdit} onDelete={onDelete} onDragStart={onDragStart} />
           )) : <p className="text-slate-500 text-sm p-4 text-center">No tasks here.</p>}
@@ -121,9 +122,10 @@ interface KanbanBoardProps {
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskStatus: (taskId: string, newStatus: TaskStatus) => void;
   onAddTask: () => void;
+  isCeo: boolean;
 }
 
-const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, employees, companies, onEditTask, onDeleteTask, onUpdateTaskStatus, onAddTask }) => {
+const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, employees, companies, onEditTask, onDeleteTask, onUpdateTaskStatus, onAddTask, isCeo }) => {
   const onDragStart = (e: React.DragEvent<HTMLDivElement>, taskId: string) => {
     e.dataTransfer.setData("taskId", taskId);
   };
@@ -134,13 +136,14 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, employees, companies, 
   };
   
   if (tasks.length === 0) {
-    return <div className="p-4"><EmptyState message="No tasks to display" actionText="Create First Task" onActionClick={onAddTask}/></div>
+    return <EmptyState message="No tasks to display" actionText="Create First Task" onActionClick={onAddTask}/>
   }
 
   const columns: TaskStatus[] = [TaskStatus.ToDo, TaskStatus.InProgress, TaskStatus.Completed];
+  const heightClass = isCeo ? 'h-[calc(100vh-25rem)]' : 'h-[calc(100vh-12rem)]';
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 p-4 overflow-x-auto">
+    <div className="flex flex-col md:flex-row gap-6">
       {columns.map(status => (
         <KanbanColumn
           key={status}
@@ -152,6 +155,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, employees, companies, 
           onDelete={onDeleteTask}
           onDragStart={onDragStart}
           onDrop={onDrop}
+          heightClass={heightClass}
         />
       ))}
     </div>

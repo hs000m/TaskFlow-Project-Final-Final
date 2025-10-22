@@ -45,11 +45,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onEditTask, onAddTas
   });
   
   if (tasks.length === 0) {
-    return <div className="p-4"><EmptyState message="No tasks to display" actionText="Create a Task" onActionClick={onAddTask}/></div>
+    return <EmptyState message="No tasks to display" actionText="Create a Task" onActionClick={onAddTask}/>
   }
 
   return (
-    <div className="p-4 h-[calc(100vh-8rem)] flex flex-col">
+    <div className="bg-white dark:bg-slate-850 rounded-lg shadow-lg p-4 h-full flex flex-col">
       <div className="flex justify-between items-center mb-4 px-2">
         <h2 className="text-xl font-bold text-slate-900 dark:text-white">
           {currentDate.toLocaleString('default', { month: 'long' })} {currentDate.getFullYear()}
@@ -60,7 +60,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onEditTask, onAddTas
           <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"><ChevronRightIcon /></button>
         </div>
       </div>
-      <div className="grid grid-cols-7 flex-grow gap-px bg-slate-300 dark:bg-slate-700 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700">
+      <div className="grid grid-cols-7 flex-grow gap-px bg-slate-300 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-800">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(dayName => (
           <div key={dayName} className="text-center font-semibold text-xs text-slate-500 dark:text-slate-300 py-2 bg-slate-100 dark:bg-slate-800 uppercase">{dayName}</div>
         ))}
@@ -69,9 +69,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onEditTask, onAddTas
           const isCurrentMonth = d.getMonth() === currentDate.getMonth();
           const isToday = dateKey === new Date().toISOString().split('T')[0];
           return (
-            <div key={index} className={`bg-white dark:bg-slate-800 p-2 flex flex-col ${isCurrentMonth ? '' : 'opacity-40'}`}>
+            <div key={index} className={`bg-white dark:bg-slate-850 p-2 flex flex-col ${isCurrentMonth ? '' : 'bg-slate-50 dark:bg-slate-850/50 opacity-60'}`}>
               <span className={`mb-2 text-sm ${isToday ? 'bg-indigo-600 text-white rounded-full w-7 h-7 flex items-center justify-center font-bold' : 'text-slate-700 dark:text-slate-300'}`}>{d.getDate()}</span>
-              <div className="flex-grow space-y-1 overflow-y-auto">
+              <div className="flex-grow space-y-1 overflow-y-auto min-h-[80px]">
                 {tasksByDate[dateKey]?.map(task => {
                     const assignee = employees.find(e => e.id === task.assigneeId);
                     const isCompleted = task.status === TaskStatus.Completed;

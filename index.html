@@ -8,6 +8,16 @@
   <script>
     tailwind.config = {
       darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slate: {
+              850: '#172033',
+              950: '#0B1120',
+            }
+          }
+        }
+      }
     }
   </script>
   <style>
@@ -49,7 +59,7 @@
 }
 </script>
 </head>
-<body class="antialiased">
+<body class="antialiased bg-slate-100 dark:bg-slate-950">
   <div id="root"></div>
 </body>
 </html>
