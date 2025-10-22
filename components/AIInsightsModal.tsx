@@ -22,38 +22,39 @@ const AIInsightsModal: React.FC<AIInsightsModalProps> = ({ isOpen, onClose, task
     setError(null);
     setInsights(null);
 
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-    const prompt = `
-      You are a world-class project management assistant for a CEO overseeing multiple companies. Your task is to analyze the provided task data and generate a concise, actionable report. The data includes all tasks, employees, and companies. Today's date is ${new Date().toLocaleDateString()}.
-
-      Your report should have three distinct sections in Markdown format:
-
-      1.  **### Overall Summary:**
-          *   Provide a brief, high-level overview of the current situation. Mention the total number of tasks and their distribution across different statuses (To-Do, In Progress, Completed).
-
-      2.  **### At-Risk Tasks:**
-          *   Identify tasks that require immediate attention. A task is considered "at-risk" if it is overdue, high-priority and nearing its deadline, or has been in progress for an unusually long time. List the specific task titles and the reason they are at risk.
-
-      3.  **### Recommendations:**
-          *   Based on your analysis, provide 2-3 concrete, actionable recommendations for the CEO. This could include suggestions for reassigning tasks to balance workload, following up with specific employees on critical tasks, or addressing bottlenecks.
-
-      Here is the data in JSON format:
-
-      ${JSON.stringify({ tasks, employees, companies }, null, 2)}
-
-      Analyze this data and provide the report.
-    `;
-
     try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+      const prompt = `
+You are a world-class project management assistant for a CEO overseeing multiple companies. Your task is to analyze the provided task data and generate a concise, actionable report. The data includes all tasks, employees, and companies. Today's date is ${new Date().toLocaleDateString()}.
+
+Your report should have three distinct sections in Markdown format:
+
+1.  **### Overall Summary:**
+    *   Provide a brief, high-level overview of the current situation. Mention the total number of tasks and their distribution across different statuses (To-Do, In Progress, Completed).
+
+2.  **### At-Risk Tasks:**
+    *   Identify tasks that require immediate attention. A task is considered "at-risk" if it is overdue, high-priority and nearing its deadline, or has been in progress for an unusually long time. List the specific task titles and the reason they are at risk.
+
+3.  **### Recommendations:**
+    *   Based on your analysis, provide 2-3 concrete, actionable recommendations for the CEO. This could include suggestions for reassigning tasks to balance workload, following up with specific employees on critical tasks, or addressing bottlenecks.
+
+Here is the data in JSON format:
+
+${JSON.stringify({ tasks, employees, companies }, null, 2)}
+
+Analyze this data and provide the report.
+      `;
+
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-pro',
         contents: prompt,
       });
+      
       setInsights(response.text);
-    } catch (e) {
-      console.error(e);
-      setError('Failed to generate insights. Please check the console for more details.');
+    } catch (e: any) {
+      console.error('Error generating insights:', e);
+      setError(e.message || 'Failed to generate insights. Please check your API key and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -62,15 +63,31 @@ const AIInsightsModal: React.FC<AIInsightsModalProps> = ({ isOpen, onClose, task
   const renderInsights = () => {
     if (!insights) return null;
 
-    return insights.split('\n').map((line, index) => {
+    const lines = insights.split('\n');
+    const elements = [];
+    let listItems: React.ReactNode[] = [];
+
+    const flushList = () => {
+      if (listItems.length > 0) {
+        elements.push(<ul key={`ul-${elements.length}`} className="list-disc ml-5 space-y-1">{listItems}</ul>);
+        listItems = [];
+      }
+    };
+
+    lines.forEach((line, index) => {
       if (line.startsWith('### ')) {
-        return <h3 key={index} className="text-lg font-semibold text-indigo-500 dark:text-indigo-300 mt-4 mb-2">{line.replace('### ', '')}</h3>;
+        flushList();
+        elements.push(<h3 key={index} className="text-lg font-semibold text-indigo-500 dark:text-indigo-300 mt-4 mb-2">{line.replace('### ', '').replace(/\*\*/g, '')}</h3>);
+      } else if (line.startsWith('* ')) {
+        listItems.push(<li key={index} className="text-slate-600 dark:text-slate-300">{line.replace('* ', '')}</li>);
+      } else if (line.trim() !== '') {
+        flushList();
+        elements.push(<p key={index} className="text-slate-500 dark:text-slate-400 mb-2">{line}</p>);
       }
-      if (line.startsWith('* ')) {
-        return <li key={index} className="ml-5 list-disc text-slate-600 dark:text-slate-300">{line.replace('* ', '')}</li>;
-      }
-      return <p key={index} className="text-slate-500 dark:text-slate-400 mb-2">{line}</p>;
     });
+
+    flushList(); // Add any remaining list items
+    return elements;
   };
 
   return (
@@ -103,7 +120,7 @@ const AIInsightsModal: React.FC<AIInsightsModalProps> = ({ isOpen, onClose, task
         {error && (
           <div className="bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 p-4 rounded-md text-sm">
             <h4 className="font-bold mb-2">An Error Occurred</h4>
-            {error}
+            <p>{error}</p>
           </div>
         )}
 
