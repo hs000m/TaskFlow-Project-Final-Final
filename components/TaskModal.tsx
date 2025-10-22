@@ -53,6 +53,8 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, taskToEd
     onSave({
       id: taskToEdit ? taskToEdit.id : `task-${Date.now()}`,
       createdAt: taskToEdit ? taskToEdit.createdAt : new Date().toISOString(),
+      // FIX: Add creatorId to satisfy the Task type.
+      creatorId: taskToEdit ? taskToEdit.creatorId : '',
       title,
       description,
       companyId,

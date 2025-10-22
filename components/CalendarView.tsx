@@ -11,13 +11,13 @@ const priorityColors: Record<TaskPriority, string> = {
 
 interface CalendarViewProps {
   tasks: Task[];
-  onEditTask: (task: Task) => void;
+  onViewTask: (task: Task) => void;
   onAddTask: () => void;
   companies: Company[];
   employees: Employee[];
 }
 
-const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onEditTask, onAddTask, companies, employees }) => {
+const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onViewTask, onAddTask, companies, employees }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -79,7 +79,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onEditTask, onAddTas
                         <div 
                             key={task.id} 
                             className={`p-1.5 rounded text-white text-xs cursor-pointer ${isCompleted ? 'bg-green-600/80 hover:bg-green-600' : priorityColors[task.priority]}`}
-                            onClick={() => onEditTask(task)}
+                            onClick={() => onViewTask(task)}
                             title={`${task.title} - ${assignee?.name}${task.reminderDateTime ? ` (Reminder at ${new Date(task.reminderDateTime).toLocaleTimeString()})` : ''}`}
                         >
                             <div className="flex items-center gap-1 truncate">

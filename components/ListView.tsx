@@ -19,12 +19,12 @@ interface ListViewProps {
   tasks: Task[];
   employees: Employee[];
   companies: Company[];
-  onEditTask: (task: Task) => void;
+  onViewTask: (task: Task) => void;
   onDeleteTask: (taskId: string) => void;
   onAddTask: () => void;
 }
 
-const ListView: React.FC<ListViewProps> = ({ tasks, employees, companies, onEditTask, onDeleteTask, onAddTask }) => {
+const ListView: React.FC<ListViewProps> = ({ tasks, employees, companies, onViewTask, onDeleteTask, onAddTask }) => {
   
   if (tasks.length === 0) {
     return <EmptyState message="No tasks to display" actionText="Create a Task" onActionClick={onAddTask} />;
@@ -52,7 +52,7 @@ const ListView: React.FC<ListViewProps> = ({ tasks, employees, companies, onEdit
               const isCompleted = task.status === TaskStatus.Completed;
 
               return (
-                <tr key={task.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${isCompleted ? 'opacity-60' : ''}`}>
+                <tr key={task.id} onClick={() => onViewTask(task)} className={`hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer ${isCompleted ? 'opacity-60' : ''}`}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <span className={`font-medium ${isCompleted ? 'text-gray-500 line-through' : 'text-slate-900 dark:text-white'}`}>{task.title}</span>
@@ -81,8 +81,8 @@ const ListView: React.FC<ListViewProps> = ({ tasks, employees, companies, onEdit
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end space-x-3">
-                       <button onClick={() => onEditTask(task)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"><EditIcon className="w-5 h-5"/></button>
-                       <button onClick={() => onDeleteTask(task.id)} className="text-red-600 dark:text-red-500 hover:text-red-800 dark:hover:text-red-400"><TrashIcon className="w-5 h-5"/></button>
+                       <button onClick={(e) => { e.stopPropagation(); onViewTask(task);}} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"><EditIcon className="w-5 h-5"/></button>
+                       <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id);}} className="text-red-600 dark:text-red-500 hover:text-red-800 dark:hover:text-red-400"><TrashIcon className="w-5 h-5"/></button>
                     </div>
                   </td>
                 </tr>

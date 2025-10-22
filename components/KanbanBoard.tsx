@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Task, Employee, TaskStatus, TaskPriority, Company } from '../types';
-import { EditIcon, TrashIcon, BellIcon } from './icons';
 import EmptyState from './EmptyState';
 
 const priorityColors: Record<TaskPriority, string> = {
@@ -20,35 +19,22 @@ interface KanbanCardProps {
   task: Task;
   employees: Employee[];
   companies: Company[];
-  onEdit: (task: Task) => void;
-  onDelete: (taskId: string) => void;
+  onView: (task: Task) => void;
   onDragStart: (e: React.DragEvent<HTMLDivElement>, taskId: string) => void;
 }
 
-const KanbanCard: React.FC<KanbanCardProps> = ({ task, employees, companies, onEdit, onDelete, onDragStart }) => {
+const KanbanCard: React.FC<KanbanCardProps> = ({ task, employees, companies, onView, onDragStart }) => {
   const assignee = employees.find(e => e.id === task.assigneeId);
   const company = companies.find(c => c.id === task.companyId);
 
   return (
     <div
       draggable
+      onClick={() => onView(task)}
       onDragStart={(e) => onDragStart(e, task.id)}
-      className={`bg-white dark:bg-slate-800 p-3 rounded-lg shadow-md mb-3 cursor-grab active:cursor-grabbing border-l-4 ${task.status === TaskStatus.Completed ? 'border-l-green-500' : priorityColors[task.priority]} transition-shadow duration-200 hover:shadow-lg hover:shadow-indigo-500/10 dark:hover:shadow-indigo-500/30`}
+      className={`bg-white dark:bg-slate-800 p-3 rounded-lg shadow-md mb-3 cursor-pointer active:cursor-grabbing border-l-4 ${task.status === TaskStatus.Completed ? 'border-l-green-500' : priorityColors[task.priority]} transition-shadow duration-200 hover:shadow-lg hover:shadow-indigo-500/10 dark:hover:shadow-indigo-500/30`}
     >
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex items-center gap-2 flex-1 pr-2">
-            <h4 className="font-semibold text-slate-800 dark:text-gray-100">{task.title}</h4>
-            {task.reminderDateTime && (
-                <div title={`Reminder set for ${new Date(task.reminderDateTime).toLocaleString()}`}>
-                    <BellIcon className="w-4 h-4 text-indigo-400 flex-shrink-0" />
-                </div>
-            )}
-        </div>
-        <div className="flex items-center space-x-1 flex-shrink-0">
-          <button onClick={() => onEdit(task)} className="text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"><EditIcon className="w-4 h-4" /></button>
-          <button onClick={() => onDelete(task.id)} className="text-slate-500 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"><TrashIcon className="w-4 h-4" /></button>
-        </div>
-      </div>
+      <h4 className="font-semibold text-slate-800 dark:text-gray-100 mb-2">{task.title}</h4>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">{company?.name}</p>
       <div className="flex items-center gap-2 mb-3">
         {task.status === TaskStatus.Completed ? (
@@ -74,14 +60,12 @@ interface KanbanColumnProps {
   tasks: Task[];
   employees: Employee[];
   companies: Company[];
-  onEdit: (task: Task) => void;
-  onDelete: (taskId: string) => void;
+  onView: (task: Task) => void;
   onDragStart: (e: React.DragEvent<HTMLDivElement>, taskId: string) => void;
   onDrop: (e: React.DragEvent<HTMLDivElement>, status: TaskStatus) => void;
-  heightClass: string;
 }
 
-const KanbanColumn: React.FC<KanbanColumnProps> = ({ status, tasks, employees, companies, onEdit, onDelete, onDragStart, onDrop, heightClass }) => {
+const KanbanColumn: React.FC<KanbanColumnProps> = ({ status, tasks, employees, companies, onView, onDragStart, onDrop }) => {
     const [isOver, setIsOver] = useState(false);
   
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -96,18 +80,18 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({ status, tasks, employees, c
   
     return (
       <div 
-        className={`bg-slate-100 dark:bg-slate-850 rounded-lg p-4 w-full md:flex-1 transition-colors duration-300 ${isOver ? 'bg-indigo-200/50 dark:bg-indigo-900/30' : ''}`}
+        className={`bg-slate-100 dark:bg-slate-850 rounded-lg p-4 flex flex-col flex-1 transition-colors duration-300 ${isOver ? 'bg-indigo-200/50 dark:bg-indigo-900/30' : ''}`}
         onDrop={(e) => {onDrop(e, status); setIsOver(false);}}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
       >
-        <h3 className="font-bold text-lg mb-4 text-slate-800 dark:text-white pb-2 border-b-2 border-slate-200 dark:border-slate-700 flex justify-between items-center">
+        <h3 className="font-bold text-lg mb-4 text-slate-800 dark:text-white pb-2 border-b-2 border-slate-200 dark:border-slate-700 flex justify-between items-center flex-shrink-0">
           <span>{status}</span>
           <span className="text-sm font-normal bg-slate-300 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full px-2 py-0.5">{tasks.length}</span>
         </h3>
-        <div className={`space-y-3 ${heightClass} overflow-y-auto pr-1`}>
+        <div className="flex-grow overflow-y-auto pr-1 -mr-1">
           {tasks.length > 0 ? tasks.map(task => (
-            <KanbanCard key={task.id} task={task} employees={employees} companies={companies} onEdit={onEdit} onDelete={onDelete} onDragStart={onDragStart} />
+            <KanbanCard key={task.id} task={task} employees={employees} companies={companies} onView={onView} onDragStart={onDragStart} />
           )) : <p className="text-slate-500 text-sm p-4 text-center">No tasks here.</p>}
         </div>
       </div>
@@ -118,14 +102,12 @@ interface KanbanBoardProps {
   tasks: Task[];
   employees: Employee[];
   companies: Company[];
-  onEditTask: (task: Task) => void;
-  onDeleteTask: (taskId: string) => void;
+  onViewTask: (task: Task) => void;
   onUpdateTaskStatus: (taskId: string, newStatus: TaskStatus) => void;
   onAddTask: () => void;
-  isCeo: boolean;
 }
 
-const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, employees, companies, onEditTask, onDeleteTask, onUpdateTaskStatus, onAddTask, isCeo }) => {
+const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, employees, companies, onViewTask, onUpdateTaskStatus, onAddTask }) => {
   const onDragStart = (e: React.DragEvent<HTMLDivElement>, taskId: string) => {
     e.dataTransfer.setData("taskId", taskId);
   };
@@ -140,10 +122,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, employees, companies, 
   }
 
   const columns: TaskStatus[] = [TaskStatus.ToDo, TaskStatus.InProgress, TaskStatus.Completed];
-  const heightClass = isCeo ? 'h-[calc(100vh-25rem)]' : 'h-[calc(100vh-12rem)]';
 
   return (
-    <div className="flex flex-col md:flex-row gap-6">
+    <div className="flex flex-col md:flex-row gap-6 h-full">
       {columns.map(status => (
         <KanbanColumn
           key={status}
@@ -151,11 +132,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, employees, companies, 
           tasks={tasks.filter(t => t.status === status)}
           employees={employees}
           companies={companies}
-          onEdit={onEditTask}
-          onDelete={onDeleteTask}
+          onView={onViewTask}
           onDragStart={onDragStart}
           onDrop={onDrop}
-          heightClass={heightClass}
         />
       ))}
     </div>

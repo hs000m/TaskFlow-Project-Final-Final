@@ -55,6 +55,7 @@ export interface Task {
   description: string;
   companyId: string;
   assigneeId: string;
+  creatorId: string;
   deadline: string; // ISO date string
   createdAt: string; // ISO date string
   status: TaskStatus;

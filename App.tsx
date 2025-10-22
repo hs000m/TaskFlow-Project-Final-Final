@@ -11,8 +11,9 @@ import ManagementModal from './components/ManagementModal';
 import ConfirmationModal from './components/ConfirmationModal';
 import Auth from './components/Auth';
 import AIInsightsModal from './components/AIInsightsModal';
+import TaskDetailModal from './components/TaskDetailModal';
 import StatCard from './components/StatCard';
-import { MoonIcon, SunIcon, KanbanIcon, ListIcon, CalendarIcon, PlusIcon, UsersIcon, ClockIcon, AlertTriangleIcon, CheckCircleIcon, SettingsIcon, UserXIcon, XIcon, LogOutIcon, SparklesIcon, GithubIcon, CalendarCheckIcon, LoaderIcon } from './components/icons';
+import { MoonIcon, SunIcon, KanbanIcon, ListIcon, CalendarIcon, PlusIcon, UsersIcon, ClockIcon, AlertTriangleIcon, CheckCircleIcon, SettingsIcon, UserXIcon, XIcon, LogOutIcon, SparklesIcon, GithubIcon, CalendarCheckIcon, LoaderIcon, SearchIcon } from './components/icons';
 
 const App: React.FC = () => {
     const [companies, setCompanies] = useLocalStorage<Company[]>('taskflow-companies', initialCompanies);
@@ -23,13 +24,16 @@ const App: React.FC = () => {
 
     const [currentView, setCurrentView] = useState<View>(View.Kanban);
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [isManagementModalOpen, setIsManagementModalOpen] = useState(false);
     const [isAIModalOpen, setIsAIModalOpen] = useState(false);
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+    const [taskToView, setTaskToView] = useState<Task | null>(null);
     const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
 
     // Filtering and Sorting State
+    const [searchTerm, setSearchTerm] = useState('');
     const [filterCompany, setFilterCompany] = useState<string>('all');
     const [filterEmployee, setFilterEmployee] = useState<string>('all');
     const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -138,12 +142,21 @@ const App: React.FC = () => {
     const approvedEmployees = useMemo(() => employees.filter(e => e.status === EmployeeStatus.Approved), [employees]);
 
     const filteredAndSortedTasks = useMemo(() => {
-        let filteredTasks = tasks;
         if (!currentUser) return [];
+        
+        let filteredTasks = tasks;
 
         // If user is not CEO, only show their tasks
         if (currentUser.role !== Role.CEO) {
             filteredTasks = filteredTasks.filter(t => t.assigneeId === currentUser.id);
+        }
+
+        // Search filter
+        if (searchTerm) {
+            filteredTasks = filteredTasks.filter(t => 
+                t.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                t.description.toLowerCase().includes(searchTerm.toLowerCase())
+            );
         }
 
         if (filterCompany !== 'all') {
@@ -167,7 +180,7 @@ const App: React.FC = () => {
             filteredTasks = filteredTasks.filter(t => t.deadline === todayStr && t.status !== TaskStatus.Completed);
         }
 
-        const sortedTasks = [...filteredTasks].sort((a, b) => {
+        return [...filteredTasks].sort((a, b) => {
             switch (sortBy) {
                 case SortBy.CreationDate:
                     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -180,9 +193,7 @@ const App: React.FC = () => {
                     return 0;
             }
         });
-
-        return sortedTasks;
-    }, [tasks, filterCompany, filterEmployee, filterStatus, dateFilter, sortBy, currentUser]);
+    }, [tasks, filterCompany, filterEmployee, filterStatus, dateFilter, sortBy, currentUser, searchTerm]);
 
     const stats = useMemo(() => {
         const sourceTasks = currentUser?.role === Role.CEO ? tasks : tasks.filter(t => t.assigneeId === currentUser?.id);
@@ -201,11 +212,12 @@ const App: React.FC = () => {
         setFilterStatus('all');
         setDateFilter('all');
         setActiveStat(null);
+        setSearchTerm('');
     };
 
     const isAnyFilterActive = useMemo(() => {
-        return filterCompany !== 'all' || filterEmployee !== 'all' || filterStatus !== 'all' || activeStat !== null;
-    }, [filterCompany, filterEmployee, filterStatus, activeStat]);
+        return filterCompany !== 'all' || filterEmployee !== 'all' || filterStatus !== 'all' || activeStat !== null || searchTerm !== '';
+    }, [filterCompany, filterEmployee, filterStatus, activeStat, searchTerm]);
 
 
     // CRUD Handlers
@@ -216,12 +228,18 @@ const App: React.FC = () => {
             newTasks[taskIndex] = task;
             setTasks(newTasks);
         } else {
-            setTasks([...tasks, task]);
+            setTasks([...tasks, { ...task, creatorId: currentUser.id }]);
         }
         setTaskToEdit(null);
     };
+    
+    const handleViewTask = (task: Task) => {
+        setTaskToView(task);
+        setIsDetailModalOpen(true);
+    };
 
     const handleEditTask = (task: Task) => {
+        setIsDetailModalOpen(false);
         setTaskToEdit(task);
         setIsTaskModalOpen(true);
     };
@@ -229,6 +247,11 @@ const App: React.FC = () => {
     const handleUpdateTaskStatus = (taskId: string, newStatus: TaskStatus) => {
         setTasks(tasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
     };
+    
+    const handleInitiateDelete = (taskId: string) => {
+        setTaskToDelete(taskId);
+        setIsDetailModalOpen(false);
+    }
 
     const handleDeleteTask = (taskId: string) => {
         setTasks(tasks.filter(t => t.id !== taskId));
@@ -267,19 +290,18 @@ const App: React.FC = () => {
             tasks: filteredAndSortedTasks,
             employees: approvedEmployees,
             companies,
-            onEditTask: handleEditTask,
-            onDeleteTask: (id: string) => setTaskToDelete(id),
+            onViewTask: handleViewTask,
             onAddTask: () => { setTaskToEdit(null); setIsTaskModalOpen(true); }
         };
 
         switch (currentView) {
             case View.List:
-                return <ListView {...props} />;
+                return <ListView {...props} onDeleteTask={(id: string) => setTaskToDelete(id)} />;
             case View.Calendar:
                 return <CalendarView {...props} />;
             case View.Kanban:
             default:
-                return <KanbanBoard {...props} onUpdateTaskStatus={handleUpdateTaskStatus} isCeo={currentUser.role === Role.CEO} />;
+                return <KanbanBoard {...props} onUpdateTaskStatus={handleUpdateTaskStatus} />;
         }
     };
     
@@ -288,9 +310,9 @@ const App: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen text-slate-800 dark:text-gray-200 flex flex-col">
+        <div className="h-screen text-slate-800 dark:text-gray-200 flex flex-col">
             {/* Header */}
-            <header className="bg-slate-100/80 dark:bg-slate-850/80 backdrop-blur-sm sticky top-0 z-40 shadow-sm">
+            <header className="bg-slate-100/80 dark:bg-slate-850/80 backdrop-blur-sm sticky top-0 z-40 shadow-sm flex-shrink-0">
                 <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center">
@@ -350,8 +372,8 @@ const App: React.FC = () => {
                 </div>
             </header>
 
-            <main className="flex-1">
-              <div className="flex flex-col gap-6 py-6">
+            <main className="flex-1 flex flex-col min-h-0">
+              <div className="flex flex-col gap-6 py-6 flex-1 min-h-0">
                 {/* Stats Bar */}
                 {currentUser.role === Role.CEO && (
                     <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -402,6 +424,16 @@ const App: React.FC = () => {
                         <div className="bg-white dark:bg-slate-850 rounded-lg shadow-md p-4">
                             <div className="flex flex-wrap items-center justify-between gap-4">
                                 <div className="flex flex-wrap items-center gap-4">
+                                    <div className="relative">
+                                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                        <input 
+                                            type="text" 
+                                            placeholder="Search tasks..." 
+                                            value={searchTerm} 
+                                            onChange={e => setSearchTerm(e.target.value)}
+                                            className="w-48 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md py-1.5 pl-9 pr-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                        />
+                                    </div>
                                     <select value={filterCompany} onChange={e => { setFilterCompany(e.target.value); setDateFilter('all'); setActiveStat(null); }} className="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md py-1.5 px-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
                                         <option value="all">All Companies</option>
                                         {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -443,7 +475,7 @@ const App: React.FC = () => {
                     </div>
                 )}
                 
-                <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 flex-grow w-full">
+                <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 flex-grow w-full flex flex-col">
                   {renderView()}
                 </div>
               </div>
@@ -460,6 +492,18 @@ const App: React.FC = () => {
                 />
             )}
             
+            {isDetailModalOpen && (
+                <TaskDetailModal
+                    isOpen={isDetailModalOpen}
+                    onClose={() => setIsDetailModalOpen(false)}
+                    task={taskToView}
+                    onEdit={handleEditTask}
+                    onDelete={handleInitiateDelete}
+                    employees={employees}
+                    companies={companies}
+                />
+            )}
+
             {isManagementModalOpen && (
                 <ManagementModal
                     isOpen={isManagementModalOpen}
