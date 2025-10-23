@@ -13,6 +13,7 @@ import Auth from './components/Auth';
 import AIInsightsModal from './components/AIInsightsModal';
 import TaskDetailModal from './components/TaskDetailModal';
 import StatCard from './components/StatCard';
+import Chatbot from './components/Chatbot';
 import { MoonIcon, SunIcon, KanbanIcon, ListIcon, CalendarIcon, PlusIcon, UsersIcon, ClockIcon, AlertTriangleIcon, CheckCircleIcon, SettingsIcon, UserXIcon, XIcon, LogOutIcon, SparklesIcon, GithubIcon, CalendarCheckIcon, LoaderIcon, SearchIcon } from './components/icons';
 
 const App: React.FC = () => {
@@ -475,7 +476,7 @@ const App: React.FC = () => {
                     </div>
                 )}
                 
-                <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 flex-grow w-full flex flex-col">
+                <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 flex-grow w-full flex flex-col min-h-0">
                   {renderView()}
                 </div>
               </div>
@@ -546,6 +547,13 @@ const App: React.FC = () => {
                     message="Are you sure you want to delete this task? This action cannot be undone."
                 />
             )}
+            
+            <Chatbot 
+                companies={companies}
+                employees={approvedEmployees}
+                currentUser={currentUser}
+                onSaveTask={handleSaveTask}
+            />
         </div>
     );
 };

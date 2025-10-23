@@ -26,18 +26,19 @@ interface KanbanCardProps {
 const KanbanCard: React.FC<KanbanCardProps> = ({ task, employees, companies, onView, onDragStart }) => {
   const assignee = employees.find(e => e.id === task.assigneeId);
   const company = companies.find(c => c.id === task.companyId);
+  const isCompleted = task.status === TaskStatus.Completed;
 
   return (
     <div
       draggable
       onClick={() => onView(task)}
       onDragStart={(e) => onDragStart(e, task.id)}
-      className={`bg-white dark:bg-slate-800 p-3 rounded-lg shadow-md mb-3 cursor-pointer active:cursor-grabbing border-l-4 ${task.status === TaskStatus.Completed ? 'border-l-green-500' : priorityColors[task.priority]} transition-shadow duration-200 hover:shadow-lg hover:shadow-indigo-500/10 dark:hover:shadow-indigo-500/30`}
+      className={`bg-white dark:bg-slate-800 p-3 rounded-lg shadow-md mb-3 cursor-pointer active:cursor-grabbing border-l-4 ${isCompleted ? 'border-l-green-500 opacity-60' : priorityColors[task.priority]} transition-all duration-150 hover:shadow-lg hover:bg-slate-50 dark:hover:bg-slate-700 hover:shadow-indigo-500/10 dark:hover:shadow-indigo-500/30`}
     >
-      <h4 className="font-semibold text-slate-800 dark:text-gray-100 mb-2">{task.title}</h4>
+      <h4 className={`font-semibold text-slate-800 dark:text-gray-100 mb-2 ${isCompleted ? 'line-through' : ''}`}>{task.title}</h4>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">{company?.name}</p>
       <div className="flex items-center gap-2 mb-3">
-        {task.status === TaskStatus.Completed ? (
+        {isCompleted ? (
             <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${completedBadgeColor}`}>
                 Completed
             </span>
@@ -89,7 +90,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({ status, tasks, employees, c
           <span>{status}</span>
           <span className="text-sm font-normal bg-slate-300 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full px-2 py-0.5">{tasks.length}</span>
         </h3>
-        <div className="flex-grow overflow-y-auto pr-1 -mr-1">
+        <div className="flex-grow overflow-y-auto pr-1 -mr-1 custom-scrollbar">
           {tasks.length > 0 ? tasks.map(task => (
             <KanbanCard key={task.id} task={task} employees={employees} companies={companies} onView={onView} onDragStart={onDragStart} />
           )) : <p className="text-slate-500 text-sm p-4 text-center">No tasks here.</p>}

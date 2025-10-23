@@ -52,7 +52,7 @@ const ListView: React.FC<ListViewProps> = ({ tasks, employees, companies, onView
               const isCompleted = task.status === TaskStatus.Completed;
 
               return (
-                <tr key={task.id} onClick={() => onViewTask(task)} className={`hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer ${isCompleted ? 'opacity-60' : ''}`}>
+                <tr key={task.id} onClick={() => onViewTask(task)} className={`hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-150 cursor-pointer ${isCompleted ? 'opacity-60' : ''}`}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <span className={`font-medium ${isCompleted ? 'text-gray-500 line-through' : 'text-slate-900 dark:text-white'}`}>{task.title}</span>

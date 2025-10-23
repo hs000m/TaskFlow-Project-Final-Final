@@ -78,13 +78,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({ tasks, onViewTask, onAddTas
                     return (
                         <div 
                             key={task.id} 
-                            className={`p-1.5 rounded text-white text-xs cursor-pointer ${isCompleted ? 'bg-green-600/80 hover:bg-green-600' : priorityColors[task.priority]}`}
+                            className={`p-1.5 rounded text-white text-xs cursor-pointer transition-colors duration-150 ${isCompleted ? 'bg-green-600/80 hover:bg-green-600 opacity-60' : priorityColors[task.priority]}`}
                             onClick={() => onViewTask(task)}
                             title={`${task.title} - ${assignee?.name}${task.reminderDateTime ? ` (Reminder at ${new Date(task.reminderDateTime).toLocaleTimeString()})` : ''}`}
                         >
                             <div className="flex items-center gap-1 truncate">
                                 {task.reminderDateTime && <BellIcon className="w-3 h-3 flex-shrink-0" />}
-                                <p className="font-semibold truncate">{task.title}</p>
+                                <p className={`font-semibold truncate ${isCompleted ? 'line-through' : ''}`}>{task.title}</p>
                             </div>
                             <p className="text-xs opacity-90">{isCompleted ? 'Completed' : task.priority}</p>
                         </div>

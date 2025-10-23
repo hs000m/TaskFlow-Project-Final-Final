@@ -49,12 +49,23 @@ Analyze this data and provide the report.
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-pro',
         contents: prompt,
+        config: {
+          thinkingConfig: {
+            thinkingBudget: 32768,
+          },
+        },
       });
       
       setInsights(response.text);
     } catch (e: any) {
       console.error('Error generating insights:', e);
-      setError(e.message || 'Failed to generate insights. Please check your API key and try again.');
+      let errorMessage = 'Failed to generate insights. Please check your API key and try again.';
+      if (e.message && (e.message.includes('quota') || e.message.includes('RESOURCE_EXHAUSTED'))) {
+          errorMessage = 'You have exceeded your request quota for the Gemini API. Please check your plan and billing details, or try again later. For more information, visit https://ai.google.dev/gemini-api/docs/rate-limits.';
+      } else if (e.message) {
+          errorMessage = e.message;
+      }
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
