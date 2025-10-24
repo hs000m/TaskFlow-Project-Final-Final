@@ -8,6 +8,7 @@ import { PlusIcon, TrashIcon, EditIcon, SaveIcon, XIcon, CheckIcon } from './ico
 interface ManagementModalProps {
   isOpen: boolean;
   onClose: () => void;
+  currentUser: Employee;
   companies: Company[];
   employees: Employee[];
   tasks: Task[];
@@ -19,9 +20,10 @@ interface ManagementModalProps {
   onEditEmployee: (id: string, newName: string) => void;
   onApproveEmployee: (id: string) => void;
   onDenyEmployee: (id: string) => void;
+  onUpdateEmployeeRole: (id: string, newRole: Role) => void;
 }
 
-const ManagementModal: React.FC<ManagementModalProps> = ({ isOpen, onClose, companies, employees, tasks, onAddCompany, onDeleteCompany, onEditCompany, onAddEmployee, onDeleteEmployee, onEditEmployee, onApproveEmployee, onDenyEmployee }) => {
+const ManagementModal: React.FC<ManagementModalProps> = ({ isOpen, onClose, currentUser, companies, employees, tasks, onAddCompany, onDeleteCompany, onEditCompany, onAddEmployee, onDeleteEmployee, onEditEmployee, onApproveEmployee, onDenyEmployee, onUpdateEmployeeRole }) => {
   const [newCompanyName, setNewCompanyName] = useState('');
   const [newEmployeeName, setNewEmployeeName] = useState('');
   const [newEmployeeCompanyId, setNewEmployeeCompanyId] = useState('');
@@ -132,47 +134,50 @@ const ManagementModal: React.FC<ManagementModalProps> = ({ isOpen, onClose, comp
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Companies Section */}
-            <div className="space-y-4">
-                <h3 className="text-lg font-medium text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">Companies</h3>
-                <form onSubmit={handleAddCompany} className="flex gap-2">
-                <input type="text" value={newCompanyName} onChange={(e) => setNewCompanyName(e.target.value)} placeholder="New company name" className="flex-grow bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm py-2 px-3 text-slate-800 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
-                <button type="submit" className="px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-white dark:focus:ring-offset-slate-800 flex items-center"><PlusIcon className="w-5 h-5"/></button>
-                </form>
-                <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
-                {companies.length > 0 ? companies.map(company => (
-                    <div key={company.id} className="flex justify-between items-center bg-slate-100 dark:bg-slate-800 p-2 rounded-md">
-                    {editing?.id === company.id ? (
-                        <input
-                            type="text"
-                            value={editing.name}
-                            onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSaveCompany(company.id)}
-                            autoFocus
-                            className="flex-grow bg-slate-200 dark:bg-slate-700 border border-indigo-500 rounded-md py-1 px-2 text-slate-800 dark:text-white sm:text-sm"
-                        />
-                    ) : (
-                        <span className="text-slate-800 dark:text-gray-200">{company.name}</span>
-                    )}
-                    <div className="flex items-center space-x-2">
-                        {editing?.id === company.id ? (
-                            <>
-                                <button onClick={() => handleSaveCompany(company.id)} className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300"><SaveIcon className="w-5 h-5"/></button>
-                                <button onClick={handleCancelEdit} className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"><XIcon className="w-5 h-5"/></button>
-                            </>
-                        ) : (
-                            <>
-                                <button onClick={() => handleEditClick(company.id, company.name)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"><EditIcon className="w-5 h-5"/></button>
-                                <button onClick={() => handleDeleteCompanyClick(company)} className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"><TrashIcon className="w-5 h-5"/></button>
-                            </>
-                        )}
-                    </div>
-                    </div>
-                )) : <EmptyState message="No companies found." />}
-                </div>
-            </div>
+            {/* Companies Section - CEO Only */}
+            {currentUser.role === Role.CEO && (
+              <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">Companies</h3>
+                  <form onSubmit={handleAddCompany} className="flex gap-2">
+                  <input type="text" value={newCompanyName} onChange={(e) => setNewCompanyName(e.target.value)} placeholder="New company name" className="flex-grow bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm py-2 px-3 text-slate-800 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                  <button type="submit" className="px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-white dark:focus:ring-offset-slate-800 flex items-center"><PlusIcon className="w-5 h-5"/></button>
+                  </form>
+                  <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                  {companies.length > 0 ? companies.map(company => (
+                      <div key={company.id} className="flex justify-between items-center bg-slate-100 dark:bg-slate-800 p-2 rounded-md">
+                      {editing?.id === company.id ? (
+                          <input
+                              type="text"
+                              value={editing.name}
+                              onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                              onKeyDown={(e) => e.key === 'Enter' && handleSaveCompany(company.id)}
+                              autoFocus
+                              className="flex-grow bg-slate-200 dark:bg-slate-700 border border-indigo-500 rounded-md py-1 px-2 text-slate-800 dark:text-white sm:text-sm"
+                          />
+                      ) : (
+                          <span className="text-slate-800 dark:text-gray-200">{company.name}</span>
+                      )}
+                      <div className="flex items-center space-x-2">
+                          {editing?.id === company.id ? (
+                              <>
+                                  <button onClick={() => handleSaveCompany(company.id)} className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300"><SaveIcon className="w-5 h-5"/></button>
+                                  <button onClick={handleCancelEdit} className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"><XIcon className="w-5 h-5"/></button>
+                              </>
+                          ) : (
+                              <>
+                                  <button onClick={() => handleEditClick(company.id, company.name)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"><EditIcon className="w-5 h-5"/></button>
+                                  <button onClick={() => handleDeleteCompanyClick(company)} className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"><TrashIcon className="w-5 h-5"/></button>
+                              </>
+                          )}
+                      </div>
+                      </div>
+                  )) : <EmptyState message="No companies found." />}
+                  </div>
+              </div>
+            )}
+
             {/* Employees Section */}
-            <div className="space-y-4">
+            <div className={`space-y-4 ${currentUser.role !== Role.CEO ? 'md:col-span-2' : ''}`}>
                 <h3 className="text-lg font-medium text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">Approved Employees</h3>
                 <form onSubmit={handleAddEmployee} className="space-y-2">
                 <input type="text" value={newEmployeeName} onChange={(e) => setNewEmployeeName(e.target.value)} placeholder="New employee name" required className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm py-2 px-3 text-slate-800 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
@@ -185,7 +190,14 @@ const ManagementModal: React.FC<ManagementModalProps> = ({ isOpen, onClose, comp
                 </div>
                 </form>
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
-                    {approvedEmployees.length > 0 ? approvedEmployees.map(employee => (
+                    {approvedEmployees.length > 0 ? approvedEmployees.map(employee => {
+                      const isSelf = employee.id === currentUser.id;
+                      const isTargetCEO = employee.role === Role.CEO;
+                      const canCEOManage = currentUser.role === Role.CEO && !isSelf;
+                      const canAdminManage = currentUser.role === Role.Admin && employee.role === Role.Employee;
+                      const canManage = canCEOManage || canAdminManage;
+
+                      return (
                         <div key={employee.id} className="flex justify-between items-center bg-slate-100 dark:bg-slate-800 p-2 rounded-md">
                             {editing?.id === employee.id ? (
                                 <input
@@ -199,7 +211,9 @@ const ManagementModal: React.FC<ManagementModalProps> = ({ isOpen, onClose, comp
                             ) : (
                                 <div>
                                     <p className="text-slate-800 dark:text-gray-200">{employee.name}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">{companies.find(c => c.id === employee.companyId)?.name}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                      <span className="font-semibold">{employee.role}</span> at {companies.find(c => c.id === employee.companyId)?.name}
+                                    </p>
                                 </div>
                             )}
                             <div className="flex items-center space-x-2">
@@ -209,14 +223,27 @@ const ManagementModal: React.FC<ManagementModalProps> = ({ isOpen, onClose, comp
                                         <button onClick={handleCancelEdit} className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"><XIcon className="w-5 h-5"/></button>
                                     </>
                                 ) : (
+                                  canManage && (
                                     <>
-                                        <button onClick={() => handleEditClick(employee.id, employee.name)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"><EditIcon className="w-5 h-5"/></button>
-                                        {employee.role !== Role.CEO && <button onClick={() => handleDeleteEmployeeClick(employee)} className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"><TrashIcon className="w-5 h-5"/></button>}
+                                      {currentUser.role === Role.CEO && !isTargetCEO && (
+                                        <select
+                                            value={employee.role}
+                                            onChange={(e) => onUpdateEmployeeRole(employee.id, e.target.value as Role)}
+                                            className="bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md py-1 px-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                        >
+                                            <option value={Role.Admin}>Admin</option>
+                                            <option value={Role.Manager}>Manager</option>
+                                            <option value={Role.Employee}>Employee</option>
+                                        </select>
+                                      )}
+                                      <button onClick={() => handleEditClick(employee.id, employee.name)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"><EditIcon className="w-5 h-5"/></button>
+                                      <button onClick={() => handleDeleteEmployeeClick(employee)} className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"><TrashIcon className="w-5 h-5"/></button>
                                     </>
+                                  )
                                 )}
                             </div>
                         </div>
-                    )) : <EmptyState message="No employees found." />}
+                    )}) : <EmptyState message="No employees found." />}
                 </div>
             </div>
             </div>

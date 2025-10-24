@@ -1,5 +1,5 @@
 import React from 'react';
-import { Task, Company, Employee, TaskStatus, TaskPriority } from '../types';
+import { Task, Company, Employee, TaskStatus, TaskPriority, Role } from '../types';
 import Modal from './Modal';
 // FIX: Import missing LoaderIcon.
 import { EditIcon, TrashIcon, UserIcon, ClockIcon, AlertTriangleIcon, BellIcon, CheckCircleIcon, LoaderIcon } from './icons';
@@ -12,6 +12,7 @@ interface TaskDetailModalProps {
   task: Task | null;
   employees: Employee[];
   companies: Company[];
+  currentUser: Employee;
 }
 
 const statusInfo: Record<TaskStatus, { icon: React.ReactNode, colors: string }> = {
@@ -34,12 +35,17 @@ const DetailItem: React.FC<{label: string; children: React.ReactNode}> = ({ labe
 );
 
 
-const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, onEdit, onDelete, task, employees, companies }) => {
+const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, onEdit, onDelete, task, employees, companies, currentUser }) => {
   if (!task) return null;
 
   const assignee = employees.find(e => e.id === task.assigneeId);
   const company = companies.find(c => c.id === task.companyId);
   const creator = employees.find(e => e.id === task.creatorId);
+
+  const canManageTask = currentUser.role === Role.CEO || 
+                        currentUser.role === Role.Admin || 
+                        (currentUser.role === Role.Manager && currentUser.companyId === task.companyId) || 
+                        currentUser.id === task.assigneeId;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Task Details" size="lg">
@@ -86,14 +92,16 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, onEd
             </div>
         </div>
       </div>
-      <div className="pt-5 mt-5 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3">
-        <button onClick={() => {onDelete(task.id)}} className="px-4 py-2 bg-red-600/10 text-red-700 dark:text-red-300 dark:bg-red-500/20 rounded-md hover:bg-red-600/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 focus:ring-offset-white dark:focus:ring-offset-slate-850 flex items-center gap-2">
-            <TrashIcon className="w-4 h-4"/> Delete
-        </button>
-        <button onClick={() => onEdit(task)} className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-white dark:focus:ring-offset-slate-850 flex items-center gap-2">
-            <EditIcon className="w-4 h-4" /> Edit Task
-        </button>
-      </div>
+      {canManageTask && (
+        <div className="pt-5 mt-5 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3">
+          <button onClick={() => {onDelete(task.id)}} className="px-4 py-2 bg-red-600/10 text-red-700 dark:text-red-300 dark:bg-red-500/20 rounded-md hover:bg-red-600/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 focus:ring-offset-white dark:focus:ring-offset-slate-850 flex items-center gap-2">
+              <TrashIcon className="w-4 h-4"/> Delete
+          </button>
+          <button onClick={() => onEdit(task)} className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-white dark:focus:ring-offset-slate-850 flex items-center gap-2">
+              <EditIcon className="w-4 h-4" /> Edit Task
+          </button>
+        </div>
+      )}
     </Modal>
   );
 };

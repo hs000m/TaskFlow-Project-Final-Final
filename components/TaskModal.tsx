@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { GoogleGenAI, Type } from '@google/genai';
 import { Task, Company, Employee, TaskStatus, TaskPriority } from '../types';
 import Modal from './Modal';
+import { SparklesIcon, LoaderIcon } from './icons';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -20,6 +22,9 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, taskToEd
   const [priority, setPriority] = useState<TaskPriority>(TaskPriority.Medium);
   const [status, setStatus] = useState<TaskStatus>(TaskStatus.ToDo);
   const [reminderDateTime, setReminderDateTime] = useState('');
+
+  const [isSuggesting, setIsSuggesting] = useState(false);
+  const [suggestionStatus, setSuggestionStatus] = useState('');
 
   useEffect(() => {
     if (taskToEdit) {
@@ -42,7 +47,82 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, taskToEd
       setStatus(TaskStatus.ToDo);
       setReminderDateTime('');
     }
+    setSuggestionStatus('');
   }, [taskToEdit, isOpen]);
+
+  const handleGenerateSuggestions = async () => {
+    if (!title) return;
+    setIsSuggesting(true);
+    setSuggestionStatus('');
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const responseSchema = {
+        type: Type.OBJECT,
+        properties: {
+            companyId: { type: Type.STRING },
+            assigneeId: { type: Type.STRING },
+            deadline: { type: Type.STRING, description: "A date in YYYY-MM-DD format" },
+            priority: { type: Type.STRING, enum: Object.values(TaskPriority) }
+        },
+        required: ["companyId", "assigneeId", "deadline", "priority"]
+      };
+
+      const prompt = `
+        You are an intelligent task assistant for a project management app. Your goal is to analyze a task title and suggest the most likely company, assignee, deadline, and priority. Use the provided data lists of companies and employees to make your suggestions. Today's date is ${new Date().toISOString().split('T')[0]}.
+
+        Analyze the following task title and provide suggestions in a JSON format.
+        Task Title: "${title}"
+
+        Available Companies (use their ID):
+        ${JSON.stringify(companies.map(({ id, name }) => ({ id, name })))}
+
+        Available Employees (use their ID):
+        ${JSON.stringify(employees.map(({ id, name, companyId }) => ({ id, name, companyId })))}
+
+        Return a JSON object matching the required schema.
+        - For "deadline", infer a reasonable date in YYYY-MM-DD format based on the title. If no date is mentioned, suggest a date 3 days from today.
+        - For "priority", choose from "High", "Medium", or "Low" based on keywords in the title (e.g., 'urgent', 'asap' -> High). Default to Medium.
+        - For "companyId" and "assigneeId", use the IDs from the lists provided. Match based on names mentioned in the title. If a good fit isn't clear, return an empty string for that field.
+        - If an assignee is suggested, ensure the companyId matches the assignee's company.
+      `;
+      
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: responseSchema,
+        },
+      });
+
+      const suggestions = JSON.parse(response.text);
+      
+      if (suggestions.companyId && companies.some(c => c.id === suggestions.companyId)) {
+        setCompanyId(suggestions.companyId);
+      }
+      if (suggestions.assigneeId && employees.some(e => e.id === suggestions.assigneeId)) {
+          // If a new company was suggested, update companyId as well to match assignee
+          const suggestedAssignee = employees.find(e => e.id === suggestions.assigneeId);
+          if(suggestedAssignee) {
+             setCompanyId(suggestedAssignee.companyId);
+             setAssigneeId(suggestions.assigneeId);
+          }
+      }
+      if (suggestions.deadline) {
+        setDeadline(suggestions.deadline);
+      }
+      if (suggestions.priority) {
+        setPriority(suggestions.priority);
+      }
+      setSuggestionStatus('✨ AI suggestions applied!');
+
+    } catch (e) {
+      console.error("AI suggestion error:", e);
+      setSuggestionStatus('Could not generate suggestions.');
+    } finally {
+      setIsSuggesting(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +133,6 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, taskToEd
     onSave({
       id: taskToEdit ? taskToEdit.id : `task-${Date.now()}`,
       createdAt: taskToEdit ? taskToEdit.createdAt : new Date().toISOString(),
-      // FIX: Add creatorId to satisfy the Task type.
       creatorId: taskToEdit ? taskToEdit.creatorId : '',
       title,
       description,
@@ -74,7 +153,21 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, taskToEd
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-slate-700 dark:text-gray-300">Title</label>
-          <input type="text" id="title" value={title} onChange={(e) => setTitle(e.target.value)} required className="mt-1 block w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm py-2 px-3 text-slate-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+          <div className="relative mt-1">
+            <input type="text" id="title" value={title} onChange={(e) => setTitle(e.target.value)} required className="block w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm py-2 px-3 text-slate-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm pr-12" />
+            {!taskToEdit && (
+                <button 
+                  type="button" 
+                  onClick={handleGenerateSuggestions} 
+                  disabled={isSuggesting || !title.trim()}
+                  title="Get AI Suggestions"
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-indigo-500 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-r-md"
+                >
+                    {isSuggesting ? <LoaderIcon className="w-5 h-5 animate-spin"/> : <SparklesIcon className="w-5 h-5" />}
+                </button>
+            )}
+          </div>
+          <p className="text-xs text-indigo-500 dark:text-indigo-400 mt-1 h-4">{suggestionStatus}</p>
         </div>
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-slate-700 dark:text-gray-300">Description</label>

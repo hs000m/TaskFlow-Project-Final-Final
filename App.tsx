@@ -142,15 +142,21 @@ const App: React.FC = () => {
     // Derived State
     const approvedEmployees = useMemo(() => employees.filter(e => e.status === EmployeeStatus.Approved), [employees]);
 
-    const filteredAndSortedTasks = useMemo(() => {
+    const visibleTasks = useMemo(() => {
         if (!currentUser) return [];
-        
-        let filteredTasks = tasks;
-
-        // If user is not CEO, only show their tasks
-        if (currentUser.role !== Role.CEO) {
-            filteredTasks = filteredTasks.filter(t => t.assigneeId === currentUser.id);
+        if (currentUser.role === Role.CEO || currentUser.role === Role.Admin) {
+            return tasks;
         }
+        if (currentUser.role === Role.Manager) {
+            return tasks.filter(t => t.companyId === currentUser.companyId);
+        }
+        // Employee
+        return tasks.filter(t => t.assigneeId === currentUser.id);
+    }, [tasks, currentUser]);
+
+
+    const filteredAndSortedTasks = useMemo(() => {
+        let filteredTasks = visibleTasks;
 
         // Search filter
         if (searchTerm) {
@@ -194,10 +200,10 @@ const App: React.FC = () => {
                     return 0;
             }
         });
-    }, [tasks, filterCompany, filterEmployee, filterStatus, dateFilter, sortBy, currentUser, searchTerm]);
+    }, [visibleTasks, filterCompany, filterEmployee, filterStatus, dateFilter, sortBy, searchTerm]);
 
     const stats = useMemo(() => {
-        const sourceTasks = currentUser?.role === Role.CEO ? tasks : tasks.filter(t => t.assigneeId === currentUser?.id);
+        const sourceTasks = visibleTasks;
         const todayStr = new Date().toISOString().split('T')[0];
         return {
             overdue: sourceTasks.filter(t => t.deadline < todayStr && t.status !== TaskStatus.Completed).length,
@@ -205,7 +211,7 @@ const App: React.FC = () => {
             inProgress: sourceTasks.filter(t => t.status === TaskStatus.InProgress).length,
             unassigned: sourceTasks.filter(t => !t.assigneeId && t.status !== TaskStatus.Completed).length,
         };
-    }, [tasks, currentUser]);
+    }, [visibleTasks]);
     
     const resetFilters = () => {
         setFilterCompany('all');
@@ -219,6 +225,11 @@ const App: React.FC = () => {
     const isAnyFilterActive = useMemo(() => {
         return filterCompany !== 'all' || filterEmployee !== 'all' || filterStatus !== 'all' || activeStat !== null || searchTerm !== '';
     }, [filterCompany, filterEmployee, filterStatus, activeStat, searchTerm]);
+
+    const showAdvancedControls = useMemo(() => {
+        if (!currentUser) return false;
+        return [Role.CEO, Role.Admin, Role.Manager].includes(currentUser.role);
+    }, [currentUser]);
 
 
     // CRUD Handlers
@@ -285,6 +296,9 @@ const App: React.FC = () => {
     const handleEditEmployee = (id: string, newName: string) => {
         setEmployees(employees.map(e => e.id === id ? { ...e, name: newName } : e));
     };
+    const handleUpdateEmployeeRole = (id: string, newRole: Role) => {
+        setEmployees(employees.map(e => e.id === id ? { ...e, role: newRole } : e));
+    };
         
     const renderView = () => {
         const props = {
@@ -297,7 +311,7 @@ const App: React.FC = () => {
 
         switch (currentView) {
             case View.List:
-                return <ListView {...props} onDeleteTask={(id: string) => setTaskToDelete(id)} />;
+                return <ListView {...props} currentUser={currentUser} onDeleteTask={(id: string) => setTaskToDelete(id)} />;
             case View.Calendar:
                 return <CalendarView {...props} />;
             case View.Kanban:
@@ -314,7 +328,7 @@ const App: React.FC = () => {
         <div className="h-screen text-slate-800 dark:text-gray-200 flex flex-col">
             {/* Header */}
             <header className="bg-slate-100/80 dark:bg-slate-850/80 backdrop-blur-sm sticky top-0 z-40 shadow-sm flex-shrink-0">
-                <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="px-6">
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center">
                             <svg className="h-8 w-8 text-indigo-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 9a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V9z"></path><path d="M9 3V1"></path><path d="M15 3V1"></path><path d="M5 3a3 3 0 0 0-3 3"></path><path d="M19 3a3 3 0 0 1 3 3"></path><path d="M2 15h20"></path><path d="M9 18H7"></path></svg>
@@ -354,7 +368,7 @@ const App: React.FC = () => {
                                             <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{currentUser.email}</p>
                                         </div>
                                         <div className="py-1">
-                                            {currentUser.role === Role.CEO && (
+                                            {(currentUser.role === Role.CEO || currentUser.role === Role.Admin) && (
                                                 <a href="#" onClick={(e) => { e.preventDefault(); setIsManagementModalOpen(true); setIsProfileMenuOpen(false); }} className="text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 flex items-center px-4 py-2 text-sm group">
                                                    <SettingsIcon className="mr-3 h-5 w-5 text-slate-400 group-hover:text-slate-500 dark:group-hover:text-slate-300"/>
                                                    Management
@@ -376,8 +390,8 @@ const App: React.FC = () => {
             <main className="flex-1 flex flex-col min-h-0">
               <div className="flex flex-col gap-6 py-6 flex-1 min-h-0">
                 {/* Stats Bar */}
-                {currentUser.role === Role.CEO && (
-                    <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                {showAdvancedControls && (
+                    <div className="px-6 w-full">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             <StatCard
                                 icon={<AlertTriangleIcon />}
@@ -420,8 +434,8 @@ const App: React.FC = () => {
                 )}
 
                 {/* Filter Bar */}
-                 {currentUser.role === Role.CEO && (
-                    <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                 {showAdvancedControls && (
+                    <div className="px-6 w-full">
                         <div className="bg-white dark:bg-slate-850 rounded-lg shadow-md p-4">
                             <div className="flex flex-wrap items-center justify-between gap-4">
                                 <div className="flex flex-wrap items-center gap-4">
@@ -476,7 +490,7 @@ const App: React.FC = () => {
                     </div>
                 )}
                 
-                <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 flex-grow w-full flex flex-col min-h-0">
+                <div className="px-6 flex-grow w-full flex flex-col min-h-0">
                   {renderView()}
                 </div>
               </div>
@@ -502,6 +516,7 @@ const App: React.FC = () => {
                     onDelete={handleInitiateDelete}
                     employees={employees}
                     companies={companies}
+                    currentUser={currentUser}
                 />
             )}
 
@@ -509,6 +524,7 @@ const App: React.FC = () => {
                 <ManagementModal
                     isOpen={isManagementModalOpen}
                     onClose={() => setIsManagementModalOpen(false)}
+                    currentUser={currentUser}
                     companies={companies}
                     employees={employees}
                     tasks={tasks}
@@ -520,6 +536,7 @@ const App: React.FC = () => {
                     onEditEmployee={handleEditEmployee}
                     onApproveEmployee={handleApproveEmployee}
                     onDenyEmployee={handleDenyEmployee}
+                    onUpdateEmployeeRole={handleUpdateEmployeeRole}
                 />
             )}
             

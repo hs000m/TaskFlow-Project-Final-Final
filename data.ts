@@ -8,7 +8,7 @@ export const initialCompanies: Company[] = [
 
 export const initialEmployees: Employee[] = [
   { id: 'emp-1', name: 'Hossam Binqasim (CEO)', email: 'hs000m@gmail.com', password: '6005977', companyId: 'comp-1', role: Role.CEO, status: EmployeeStatus.Approved },
-  { id: 'emp-2', name: 'Samantha Lee', email: 'samantha@innovate.inc', password: 'password123', companyId: 'comp-1', role: Role.Employee, status: EmployeeStatus.Approved },
+  { id: 'emp-2', name: 'Samantha Lee', email: 'samantha@innovate.inc', password: 'password123', companyId: 'comp-1', role: Role.Manager, status: EmployeeStatus.Approved },
   { id: 'emp-3', name: 'Michael Chen', email: 'michael@innovate.inc', password: 'password123', companyId: 'comp-1', role: Role.Employee, status: EmployeeStatus.Approved },
   { id: 'emp-4', name: 'Jessica Brown', email: 'jessica@synergy.sol', password: 'password123', companyId: 'comp-2', role: Role.Employee, status: EmployeeStatus.Approved },
   { id: 'emp-5', name: 'David Wilson', email: 'david@synergy.sol', password: 'password123', companyId: 'comp-2', role: Role.Employee, status: EmployeeStatus.Approved },

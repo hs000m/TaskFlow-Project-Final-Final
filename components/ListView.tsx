@@ -1,5 +1,5 @@
 import React from 'react';
-import { Task, Employee, Company, TaskStatus, TaskPriority } from '../types';
+import { Task, Employee, Company, TaskStatus, TaskPriority, Role } from '../types';
 import { EditIcon, TrashIcon, BellIcon } from './icons';
 import EmptyState from './EmptyState';
 
@@ -19,12 +19,13 @@ interface ListViewProps {
   tasks: Task[];
   employees: Employee[];
   companies: Company[];
+  currentUser: Employee;
   onViewTask: (task: Task) => void;
   onDeleteTask: (taskId: string) => void;
   onAddTask: () => void;
 }
 
-const ListView: React.FC<ListViewProps> = ({ tasks, employees, companies, onViewTask, onDeleteTask, onAddTask }) => {
+const ListView: React.FC<ListViewProps> = ({ tasks, employees, companies, currentUser, onViewTask, onDeleteTask, onAddTask }) => {
   
   if (tasks.length === 0) {
     return <EmptyState message="No tasks to display" actionText="Create a Task" onActionClick={onAddTask} />;
@@ -50,6 +51,11 @@ const ListView: React.FC<ListViewProps> = ({ tasks, employees, companies, onView
               const assignee = employees.find(e => e.id === task.assigneeId);
               const company = companies.find(c => c.id === task.companyId);
               const isCompleted = task.status === TaskStatus.Completed;
+              
+              const canManageTask = currentUser.role === Role.CEO || 
+                                    currentUser.role === Role.Admin || 
+                                    (currentUser.role === Role.Manager && currentUser.companyId === task.companyId) || 
+                                    currentUser.id === task.assigneeId;
 
               return (
                 <tr key={task.id} onClick={() => onViewTask(task)} className={`hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-150 cursor-pointer ${isCompleted ? 'opacity-60' : ''}`}>
@@ -80,10 +86,12 @@ const ListView: React.FC<ListViewProps> = ({ tasks, employees, companies, onView
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex items-center justify-end space-x-3">
-                       <button onClick={(e) => { e.stopPropagation(); onViewTask(task);}} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"><EditIcon className="w-5 h-5"/></button>
-                       <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id);}} className="text-red-600 dark:text-red-500 hover:text-red-800 dark:hover:text-red-400"><TrashIcon className="w-5 h-5"/></button>
-                    </div>
+                    {canManageTask && (
+                      <div className="flex items-center justify-end space-x-3">
+                         <button onClick={(e) => { e.stopPropagation(); onViewTask(task);}} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"><EditIcon className="w-5 h-5"/></button>
+                         <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id);}} className="text-red-600 dark:text-red-500 hover:text-red-800 dark:hover:text-red-400"><TrashIcon className="w-5 h-5"/></button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               )
