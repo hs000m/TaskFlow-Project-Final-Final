@@ -49,6 +49,7 @@ export interface Employee {
   role: Role;
   status: EmployeeStatus;
   verificationToken?: string;
+  canViewDashboard?: boolean;
 }
 
 export interface Task {
@@ -63,4 +64,47 @@ export interface Task {
   status: TaskStatus;
   priority: TaskPriority;
   reminderDateTime?: string; // ISO datetime string
+}
+
+export interface Folder {
+  id: string;
+  name: string;
+  parentId: string | null;
+  createdAt: string;
+}
+
+export interface SharedFile {
+  id: string;
+  name: string;
+  type: string; // MIME type
+  size: number; // in bytes
+  dataUrl: string; // base64 encoded file content
+  uploadedAt: string; // ISO date string
+  uploaderId: string;
+  folderId: string | null;
+}
+
+export interface FinancialData {
+  companyId: string;
+  
+  // Monthly P&L Data
+  monthlyDataAsOf: string; // e.g., "YTD June"
+  monthlyDataLastUpdatedBy: string; // employeeId
+  monthlyDataLastUpdatedAt: string; // ISO date string
+  planRevenue: number;
+  actualRevenue: number;
+  planGrossProfit: number;
+  actualGrossProfit: number;
+  planEbitda: number;
+  actualEbitda: number;
+  planEbit: number;
+  actualEbit: number;
+  planNetIncome: number;
+  actualNetIncome: number;
+  
+  // Weekly Cash Data
+  cashBalance: number;
+  cashBalanceAsOfDate: string; // ISO date string
+  cashBalanceLastUpdatedBy: string; // employeeId
+  cashBalanceLastUpdatedAt: string; // ISO date string
 }

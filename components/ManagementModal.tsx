@@ -3,7 +3,7 @@ import { Company, Employee, Task, Role, EmployeeStatus } from '../types';
 import Modal from './Modal';
 import ConfirmationModal from './ConfirmationModal';
 import EmptyState from './EmptyState';
-import { PlusIcon, TrashIcon, EditIcon, SaveIcon, XIcon, CheckIcon } from './icons';
+import { PlusIcon, TrashIcon, EditIcon, SaveIcon, XIcon, CheckIcon, ChartBarIcon } from './icons';
 
 interface ManagementModalProps {
   isOpen: boolean;
@@ -21,9 +21,10 @@ interface ManagementModalProps {
   onApproveEmployee: (id: string) => void;
   onDenyEmployee: (id: string) => void;
   onUpdateEmployeeRole: (id: string, newRole: Role) => void;
+  onUpdateDashboardAccess: (id: string, canAccess: boolean) => void;
 }
 
-const ManagementModal: React.FC<ManagementModalProps> = ({ isOpen, onClose, currentUser, companies, employees, tasks, onAddCompany, onDeleteCompany, onEditCompany, onAddEmployee, onDeleteEmployee, onEditEmployee, onApproveEmployee, onDenyEmployee, onUpdateEmployeeRole }) => {
+const ManagementModal: React.FC<ManagementModalProps> = ({ isOpen, onClose, currentUser, companies, employees, tasks, onAddCompany, onDeleteCompany, onEditCompany, onAddEmployee, onDeleteEmployee, onEditEmployee, onApproveEmployee, onDenyEmployee, onUpdateEmployeeRole, onUpdateDashboardAccess }) => {
   const [newCompanyName, setNewCompanyName] = useState('');
   const [newEmployeeName, setNewEmployeeName] = useState('');
   const [newEmployeeCompanyId, setNewEmployeeCompanyId] = useState('');
@@ -226,15 +227,29 @@ const ManagementModal: React.FC<ManagementModalProps> = ({ isOpen, onClose, curr
                                   canManage && (
                                     <>
                                       {currentUser.role === Role.CEO && !isTargetCEO && (
-                                        <select
-                                            value={employee.role}
-                                            onChange={(e) => onUpdateEmployeeRole(employee.id, e.target.value as Role)}
-                                            className="bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md py-1 px-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                        >
-                                            <option value={Role.Admin}>Admin</option>
-                                            <option value={Role.Manager}>Manager</option>
-                                            <option value={Role.Employee}>Employee</option>
-                                        </select>
+                                        <div className="flex items-center gap-2 border-r border-slate-200 dark:border-slate-700 pr-2">
+                                            <select
+                                                value={employee.role}
+                                                onChange={(e) => onUpdateEmployeeRole(employee.id, e.target.value as Role)}
+                                                className="bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md py-1 px-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                            >
+                                                <option value={Role.Admin}>Admin</option>
+                                                <option value={Role.Manager}>Manager</option>
+                                                <option value={Role.Employee}>Employee</option>
+                                            </select>
+                                             <div className="flex items-center" title="Toggle Dashboard Access">
+                                                <label htmlFor={`dashboard-access-${employee.id}`} className="cursor-pointer">
+                                                    <ChartBarIcon className={`w-5 h-5 transition-colors ${employee.canViewDashboard ? 'text-indigo-500' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`} />
+                                                </label>
+                                                <input
+                                                    type="checkbox"
+                                                    id={`dashboard-access-${employee.id}`}
+                                                    checked={!!employee.canViewDashboard}
+                                                    onChange={(e) => onUpdateDashboardAccess(employee.id, e.target.checked)}
+                                                    className="sr-only"
+                                                />
+                                            </div>
+                                        </div>
                                       )}
                                       <button onClick={() => handleEditClick(employee.id, employee.name)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"><EditIcon className="w-5 h-5"/></button>
                                       <button onClick={() => handleDeleteEmployeeClick(employee)} className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"><TrashIcon className="w-5 h-5"/></button>

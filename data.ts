@@ -1,4 +1,4 @@
-import { Company, Employee, Task, Role, TaskStatus, TaskPriority, EmployeeStatus } from './types';
+import { Company, Employee, Task, Role, TaskStatus, TaskPriority, EmployeeStatus, FinancialData } from './types';
 
 export const initialCompanies: Company[] = [
   { id: 'comp-1', name: 'Innovate Inc.' },
@@ -7,7 +7,7 @@ export const initialCompanies: Company[] = [
 ];
 
 export const initialEmployees: Employee[] = [
-  { id: 'emp-1', name: 'Hossam Binqasim (CEO)', email: 'hs000m@gmail.com', password: '6005977', companyId: 'comp-1', role: Role.CEO, status: EmployeeStatus.Approved },
+  { id: 'emp-1', name: 'Hossam Binqasim (CEO)', email: 'hs000m@gmail.com', password: '6005977', companyId: 'comp-1', role: Role.CEO, status: EmployeeStatus.Approved, canViewDashboard: true },
   { id: 'emp-2', name: 'Samantha Lee', email: 'samantha@innovate.inc', password: 'password123', companyId: 'comp-1', role: Role.Manager, status: EmployeeStatus.Approved },
   { id: 'emp-3', name: 'Michael Chen', email: 'michael@innovate.inc', password: 'password123', companyId: 'comp-1', role: Role.Employee, status: EmployeeStatus.Approved },
   { id: 'emp-4', name: 'Jessica Brown', email: 'jessica@synergy.sol', password: 'password123', companyId: 'comp-2', role: Role.Employee, status: EmployeeStatus.Approved },
@@ -111,4 +111,67 @@ export const initialTasks: Task[] = [
     status: TaskStatus.ToDo,
     priority: TaskPriority.Medium,
   },
+];
+
+export const initialFinancials: FinancialData[] = [
+    {
+        companyId: 'comp-1',
+        monthlyDataAsOf: 'YTD May 2024',
+        monthlyDataLastUpdatedBy: 'emp-1',
+        monthlyDataLastUpdatedAt: new Date(Date.now() - 15 * 24*60*60*1000).toISOString(),
+        planRevenue: 12000000,
+        actualRevenue: 10500000,
+        planGrossProfit: 8000000,
+        actualGrossProfit: 7800000,
+        planEbitda: 4000000,
+        actualEbitda: 4100000,
+        planEbit: 3500000,
+        actualEbit: 3600000,
+        planNetIncome: 2500000,
+        actualNetIncome: 2400000,
+        cashBalance: 5300000,
+        cashBalanceAsOfDate: new Date(Date.now() - 5 * 24*60*60*1000).toISOString().split('T')[0],
+        cashBalanceLastUpdatedBy: 'emp-1',
+        cashBalanceLastUpdatedAt: new Date(Date.now() - 5 * 24*60*60*1000).toISOString(),
+    },
+    {
+        companyId: 'comp-2',
+        monthlyDataAsOf: 'YTD May 2024',
+        monthlyDataLastUpdatedBy: 'emp-1',
+        monthlyDataLastUpdatedAt: new Date(Date.now() - 12 * 24*60*60*1000).toISOString(),
+        planRevenue: 8000000,
+        actualRevenue: 8500000,
+        planGrossProfit: 5000000,
+        actualGrossProfit: 5200000,
+        planEbitda: 2000000,
+        actualEbitda: 2300000,
+        planEbit: 1800000,
+        actualEbit: 2100000,
+        planNetIncome: 1200000,
+        actualNetIncome: 1500000,
+        cashBalance: 3100000,
+        cashBalanceAsOfDate: new Date(Date.now() - 2 * 24*60*60*1000).toISOString().split('T')[0],
+        cashBalanceLastUpdatedBy: 'emp-1',
+        cashBalanceLastUpdatedAt: new Date(Date.now() - 2 * 24*60*60*1000).toISOString(),
+    },
+    {
+        companyId: 'comp-3',
+        monthlyDataAsOf: 'YTD April 2024',
+        monthlyDataLastUpdatedBy: 'emp-1',
+        monthlyDataLastUpdatedAt: new Date(Date.now() - 35 * 24*60*60*1000).toISOString(),
+        planRevenue: 5000000,
+        actualRevenue: 4100000,
+        planGrossProfit: 3000000,
+        actualGrossProfit: 2500000,
+        planEbitda: 1000000,
+        actualEbitda: 800000,
+        planEbit: 900000,
+        actualEbit: 700000,
+        planNetIncome: 600000,
+        actualNetIncome: 450000,
+        cashBalance: 1250000,
+        cashBalanceAsOfDate: new Date(Date.now() - 10 * 24*60*60*1000).toISOString().split('T')[0],
+        cashBalanceLastUpdatedBy: 'emp-1',
+        cashBalanceLastUpdatedAt: new Date(Date.now() - 10 * 24*60*60*1000).toISOString(),
+    }
 ];
